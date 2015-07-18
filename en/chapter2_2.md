@@ -1,0 +1,77 @@
+### Representing money and currency with money-api
+
+
+
+On money-api, will used this name instead of JSR 354, also will be necessary to represent both the numeric value and currency. To represents the currency there is the CurrencyUnit interface all implementation must be immutable and thread-safe.
+
+|Method's name| Description |Example|
+| -- | -- | -- |
+|```String getCurrencyCode()```|Returns the currency code, to currency that follows the ISO will be returned three words.|BRL to Brazilian Real and USD dollar.
+|```int getNumericCode()```|Returns the numeric code of the currency, similar to currency code it has three digits.|986 to Brazilian Real and 840 to dollar.|
+|``` int getDefaultFractionDigits()``` |Returns the number of digits normally used by currency.|BRL has two digits and JPY hasn't.|
+
+
+This book will use the **Moneta** implementation, the reference implementation to this specification. Using the **Moneta** is possible have the currency's instance on two ways. The first way is using the currency code, so will use the ```String``` with three words.
+
+
+```java
+public class CurrencyExample1 {
+
+    public static void main(String[] args) {
+
+        CurrencyUnit currencyUnit = Monetary.getCurrency("BRL");
+        String currencyCode = currencyUnit.getCurrencyCode();//BRL
+        int numericCurrencyCode = currencyUnit.getNumericCode();//986
+        int fractionDigits = currencyUnit.getDefaultFractionDigits();//2
+
+    }
+}
+```
+
+The simplest way is using the `Locale` class, this option is very interesting when, for example, a web application knows, from `Locale` on request, the currency of the user that is accessing the application.
+
+```java
+
+public class CurrencyExample2 {
+
+    public static void main(String[] args) {
+        CurrencyUnit currencyUnit = Monetary.getCurrency(Locale.US);
+        String currencyCode = currencyUnit.getCurrencyCode();//USD
+        int numericCurrencyCode = currencyUnit.getNumericCode();//840
+        int fractionDigits = currencyUnit.getDefaultFractionDigits();//2
+    }
+}
+
+```
+
+Once was discussed about the currency the next step will talk about the representation of the monetary amount, for this, there is the `MonetaryAmount`'s interface, an important behavior is all implementation must be immutable and thread-safe.
+
+||Method|Description|
+| -- | -- |
+|`<R> R query(MonetaryQuery<R> query)`|Does query with monetary amount|
+|`MonetaryAmount with(MonetaryOperator operator)`|Does operations with monetary amount.|
+|`boolean isGreaterThan(MonetaryAmount amount)`|Returns true if this instance is greater than the monetary in parameter, so if they are equal will return false.|
+|`boolean   isGreaterThanOrEqualTo(MonetaryAmount amount)`|Returns true if this instance is greater or equals than the monetary amount passed on parameter.|
+|`boolean isLessThan(MonetaryAmount amount)`|Returns true if this instance is lesser than the value passed on parameter, so if they are equal will return false.|
+|`isLessThanOrEqualTo(MonetaryAmount amt)`|Returns true if this instance is lesser than the value passed on parameter or equals.|
+|`boolean isEqualTo(MonetaryAmount amount)`|Returns true if this instance is equals to the monetary value passed on parameter.|
+|`boolean isNegative()`|Returns true if this instance is negative.|
+|`boolean isNegativeOrZero()`|Returns true if this instance is negative or zero.|
+|`isPositive()`|Returns true if this instance is positive.|
+|`boolean isPositiveOrZero()`|Returns true if this instance is positive or zero.|
+|`isZero()`|Returns true if this instance is zero.|
+|`MonetaryAmount add(MonetaryAmount amount)`|Does the add with this instance and the monetary passed on parameter and the return will the result of the operation.|
+|`MonetaryAmount subtract(MonetaryAmount amount)`|Does the subtract with this instance and the monetary passed on parameter and the return will the result of the operation.|
+|`MonetaryAmount multiply(Number multiplicand)`|Does the multiply with this instance and the number passed on parameter and the return will the result of the operation.|
+|`MonetaryAmount divide(Number divisor)`|Does the divide with this instance and the number passed on parameter and the return will the result of the operation.|
+|`MonetaryAmount remainder(Number divisor)`|Does the divide with this instance and the number passed on parameter and the return will the remainder of the operation.|
+|`MonetaryAmount negate()`|Does the negation operation, so the return will the -this.|
+|`getCurrency()`| Returns the currency of the monetary amount.|
+
+
+Inside the **Moneta** there are three implementation to `MonetaryAmount`'s interface:
+
+
+1. **Money**: The default implementation, it represents the numeric value using BigDecimal.
+1. **RoundedMoney**: Look like the Money implementation, it represents the numeric value with BigDecimal, but with RoundedMoney is possible to receive a MonetaryOperator to be called on each operation, for exemplo, to do rounding operation after each arithmetic process. 
+1. **FastMoney**: An implementation which represents the numeric value with long primitive, it is the fastest implementation on Moneta, around fifteen time faster than the others implementations. However it has a precision limitation, if need work with precision with this implementation, it cannot be longer than five decimal digits.
